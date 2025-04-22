@@ -40,5 +40,9 @@ fun InventoryScreen(viewModel: InventoryViewModel) {
                 }
             }
         }
+
+        // Inside SearchScreen.kt (your button onClick or success handler)
+        val idsJson = Uri.encode(Gson().toJson(idList))
+        navController.navigate("results/$idsJson")
     }
 }

@@ -35,4 +35,14 @@ class InventoryViewModel : ViewModel() {
             }
         }
     }
+
+    private val _inventoryDetails = mutableStateOf<List<InventoryItem>>(emptyList())
+    val inventoryDetails: State<List<InventoryItem>> get() = _inventoryDetails
+
+    fun fetchInventoryDetails(ids: List<String>) {
+        viewModelScope.launch {
+            val details = repository.getList(ids.mapNotNull { it.toIntOrNull() })
+            _inventoryDetails.value = details
+        }
+    }
 }

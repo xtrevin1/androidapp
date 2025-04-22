@@ -65,4 +65,5 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("androidx.paging:paging-compose:3.2.1")
+    implementation("androidx.navigation:navigation-compose:2.8.9")
 }

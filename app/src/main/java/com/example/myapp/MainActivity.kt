@@ -1,18 +1,17 @@
-package com.example.myapp
+// MainActivity.kt
+package com.example.yourapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.example.myapp.ui.InventoryScreen
-import com.example.myapp.viewmodel.InventoryViewModel
+import androidx.navigation.compose.rememberNavController
+import com.example.myapp.ui.AppNavigation
 
 class MainActivity : ComponentActivity() {
-    private val viewModel = InventoryViewModel()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            InventoryScreen(viewModel = viewModel)
+            AppNavigation()
         }
     }
 }
