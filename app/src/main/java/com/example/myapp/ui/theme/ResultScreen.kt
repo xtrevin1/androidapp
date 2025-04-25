@@ -22,14 +22,32 @@ fun ResultsScreen(ids: List<String>) {
     }
 
     LazyColumn {
-        items(items) { item ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-            ) {
-                Text(item.displayName, modifier = Modifier.weight(1f))
-                Text(item.condition, modifier = Modifier.weight(1f))
+        items(viewModel.productDetails.size) { index ->
+            val item = viewModel.productDetails[index]
+
+            Row(modifier = Modifier.fillMaxWidth()) {
+                TableCell(text = item.DisplayName, weight = columnWeight)
+                TableCell(text = item.DSInventoryLookupID.toString(), weight = column2Weight)
+                TableCell(text = item.Condition.toString(), weight = column3Weight)
+            }
+
+            // 🔁 Trigger next page load if we're at the bottom
+            if (index == viewModel.productDetails.lastIndex && !viewModel.isLoading) {
+                viewModel.loadNextPage()
+            }
+        }
+
+        // Bottom loading spinner for pagination
+        if (viewModel.isLoading) {
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator()
+                }
             }
         }
     }
