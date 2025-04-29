@@ -23,3 +23,14 @@ interface ApiService {
         @Body productIds: List<String>
     ): List<ProductDetail>
 }
+
+interface ApiService {
+    @GET("items")
+    suspend fun getItems(
+        @Query("page") page: Int? = null,
+        @Query("size") size: Int? = null,
+        @Query("offset") offset: Int? = null,
+        @Query("limit") limit: Int? = null,
+        @Query("after") after: String? = null
+    ): List<YourDataType>
+}
