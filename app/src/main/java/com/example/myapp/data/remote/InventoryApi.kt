@@ -34,3 +34,8 @@ interface ApiService {
         @Query("after") after: String? = null
     ): List<YourDataType>
 }
+
+interface ApiService {
+    @POST("items")
+    suspend fun getItems(@Body request: ApiRequest): ApiResponse
+}

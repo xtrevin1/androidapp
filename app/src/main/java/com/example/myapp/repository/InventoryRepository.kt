@@ -26,3 +26,11 @@ class InventoryRepository {
         )
     }
 }
+
+
+class YourRepository(private val api: ApiService) {
+    suspend fun getItems(filters: Map<String, Any>?, properties: List<String>, cursor: String?): ApiResponse {
+        val request = ApiRequest(filters, properties, cursor)
+        return api.getItems(request)
+    }
+}

@@ -52,3 +52,35 @@ fun ResultsScreen(ids: List<String>) {
         }
     }
 }
+
+@Composable
+fun YourListScreen(viewModel: YourViewModel) {
+    val list = viewModel.items
+    val isLoading = viewModel.isLoading
+
+    LazyColumn {
+        itemsIndexed(list) { index, item ->
+            YourItemView(item = item)
+
+            // Trigger loading when near the end
+            if (index >= list.lastIndex - 5 && !isLoading) {
+                viewModel.loadNextPage()
+            }
+        }
+
+        if (isLoading) {
+            item {
+                Box(
+                    Modifier.fillMaxWidth().padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+        }
+    }
+}
+
+LaunchedEffect(Unit) {
+    viewModel.loadNextPage()
+}

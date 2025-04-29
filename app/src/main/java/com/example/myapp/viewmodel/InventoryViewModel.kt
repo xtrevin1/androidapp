@@ -103,3 +103,32 @@ class InventoryViewModel : ViewModel() {
 
 }
 
+
+class YourViewModel(private val repository: YourRepository) : ViewModel() {
+    var items = mutableStateListOf<YourDataType>()
+        private set
+
+    var isLoading by mutableStateOf(false)
+    var hasMore by mutableStateOf(true)
+
+    private var nextCursor: String? = null
+
+    fun loadNextPage() {
+        if (isLoading || !hasMore) return
+
+        isLoading = true
+
+        viewModelScope.launch {
+            val response = repository.getItems(
+                filters = null, // or your filter logic
+                properties = listOf("name", "email"), // or your real properties
+                cursor = nextCursor
+            )
+
+            items.addAll(response.results)
+            nextCursor = response.nextCursor
+            hasMore = response.hasMore
+            isLoading = false
+        }
+    }
+}
