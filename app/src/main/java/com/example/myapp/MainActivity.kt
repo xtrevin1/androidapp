@@ -10,8 +10,13 @@ import com.example.myapp.ui.AppNavigation
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val test = Test()
         setContent {
             AppNavigation()
         }
     }
+}
+
+class Test {
+    val name = "Philipp"
 }

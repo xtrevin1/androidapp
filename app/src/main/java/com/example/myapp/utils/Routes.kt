@@ -3,7 +3,6 @@ sealed class Screen(val route: String) {
     object List : Screen("list?ids={ids}")
 }
 
-
 // navController.navigate("list?ids=123,456,789")
 
 /*
