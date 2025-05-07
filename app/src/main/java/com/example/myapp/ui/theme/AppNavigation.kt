@@ -1,27 +1,47 @@
-package com.example.myapp.ui
-
-import androidx.compose.runtime.Composable
-import androidx.navigation.NavType
-import androidx.navigation.compose.*
-import com.example.myapp.ui.search.SearchScreen
-import com.example.myapp.ui.results.ResultsScreen
-import com.google.gson.Gson
-
 @Composable
-fun AppNavigation() {
-    val navController = rememberNavController()
+fun Navigation(navController: NavHostController) {
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val canNavigateBack = backStackEntry?.destination?.route != Routes.Search.route
 
-    NavHost(navController, startDestination = "search") {
-        composable("search") {
-            SearchScreen(navController)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Android Project") },
+                navigationIcon = {
+                    if (canNavigateBack) {
+                        IconButton(onClick = { navController.navigateUp() }) {
+                            Icon(
+                                imageVector = Icons.Filled.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.primary
+                )
+            )
         }
-        composable(
-            "results/{ids}",
-            arguments = listOf(navArgument("ids") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val idsJson = backStackEntry.arguments?.getString("ids") ?: "[]"
-            val ids = Gson().fromJson(idsJson, Array<String>::class.java).toList()
-            ResultsScreen(ids)
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = Routes.Search.route,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable(Routes.Search.route) {
+                SearchScreen(navController = navController)
+            }
+
+            composable(
+                "${Routes.List.route}/{ids}"
+            ) {
+                val ids = Gson().fromJson(
+                    it.arguments?.getString("ids"),
+                    Array<Long>::class.java
+                ).toList()
+                ListScreen(viewModel = hiltViewModel(), idList = ids)
+            }
         }
     }
 }
