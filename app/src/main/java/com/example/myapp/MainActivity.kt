@@ -101,3 +101,23 @@ class ChatListViewModel @AssistedInject constructor(
         }
     }
 }
+
+fun saveAssignedPhoneNumbers(crmid: Long, numbers: List<String>) {
+    viewModelScope.launch {
+        chatRepository.saveAssignedPhoneNumbers(crmid, numbers).collect { result ->
+            when (result) {
+                is Resource.Loading -> {
+                    // Optionally show loading state
+                }
+                is Resource.Success -> {
+                    // Update local state if needed, e.g.:
+                    _assignedNumbers.value = numbers
+                    // Optional: trigger reload of filtered data
+                }
+                is Resource.Error -> {
+                    // Show error toast/snackbar
+                }
+            }
+        }
+    }
+}
