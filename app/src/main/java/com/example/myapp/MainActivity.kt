@@ -1,48 +1,103 @@
-// MainActivity.kt
-package com.example.yourapp
+@HiltViewModel
+class ChatListViewModel @AssistedInject constructor(
+    @Assisted val companyId: Int,
+    private val chatRepository: IChatRepository
+) : ViewModel() {
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.navigation.compose.rememberNavController
-import com.example.myapp.ui.AppNavigation
-
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val test = Test()
-        setContent {
-            AppNavigation()
-        }
+    @AssistedFactory
+    interface ChatListViewModelFactory {
+        fun create(companyId: Int): ChatListViewModel
     }
-}
 
-class Test {
-    val name = "Philipp"
-}
+    var isLoading by mutableStateOf(true)
+        private set
 
-val filteredChat = combine(
-    filterFlow,
-    chatRepository.chats
-) { filters, chats ->
-    filters.fold(chats) { filteredChats, filter ->
-        if (filter.isEnabled) {
-            when (filter.type) {
-                ChatFilterType.UNREAD -> filteredChats.filter { it.hasUnreadMessage == true }
-                ChatFilterType.LOCATIONS -> {
-                    val selectedLocations = filter.getEnabledOptions()
-                    if (selectedLocations.isNotEmpty()) {
-                        filteredChats.filter { selectedLocations.contains(it.messageFrom) }
-                    } else filteredChats
+    var isRefreshing by mutableStateOf(false)
+        private set
+
+    private val _conversations = MutableStateFlow<List<Conversation>>(emptyList())
+    val conversations: StateFlow<List<Conversation>> = _conversations
+
+    private val _assignedNumbers = MutableStateFlow<List<String>>(emptyList())
+    val assignedNumbers: StateFlow<List<String>> = _assignedNumbers
+
+    init {
+        initializeChats()
+    }
+
+    private fun initializeChats() {
+        viewModelScope.launch {
+            chatRepository.chats.collect { cachedChats ->
+                if (cachedChats.isEmpty()) {
+                    loadConversations()
+                } else {
+                    isLoading = false
                 }
-                else -> filteredChats
             }
-        } else {
-            filteredChats
+        }
+
+        // Background check on every navigation
+        viewModelScope.launch {
+            if (chatRepository.chats.value.isNotEmpty()) {
+                backgroundUpdate()
+            }
         }
     }
-}.stateIn(
-    scope = viewModelScope,
-    started = SharingStarted.WhileSubscribed(5000),
-    initialValue = chatRepository.chats.value
-)
+
+    fun loadConversations() {
+        chatRepository.getCompanyConversations(companyId, false, "ACTIVE").onEach { result ->
+            when (result) {
+                is Resource.Loading -> isLoading = true
+                is Resource.Success -> {
+                    _conversations.value = result.data
+                    isLoading = false
+                }
+                is Resource.Error -> {
+                    // Optionally show error toast/snackbar
+                    isLoading = false
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun refreshChats() {
+        chatRepository.getCompanyConversations(companyId, false, "ACTIVE").onEach { result ->
+            when (result) {
+                is Resource.Loading -> isRefreshing = true
+                is Resource.Success -> {
+                    _conversations.value = result.data
+                    isRefreshing = false
+                }
+                is Resource.Error -> {
+                    isRefreshing = false
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    private fun backgroundUpdate() {
+        chatRepository.getCompanyConversations(companyId, false, "ACTIVE").onEach { result ->
+            if (result is Resource.Success) {
+                _conversations.value = result.data
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun getAssignedPhoneNumbers(crmid: Long, companyId: Int) {
+        viewModelScope.launch {
+            chatRepository.getAssignedPhoneNumbers(crmid, companyId).collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        _assignedNumbers.value = result.data.mapNotNull { it.phoneNumber }
+                    }
+                    is Resource.Error -> {
+                        // Handle API failure (optional)
+                    }
+                    is Resource.Loading -> {
+                        // You can add a loading indicator if needed
+                    }
+                }
+            }
+        }
+    }
+}
